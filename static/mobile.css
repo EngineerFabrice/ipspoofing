@@ -1,0 +1,234 @@
+/* Mobile-specific styles */
+body.mobile {
+    font-size: 14px;
+}
+
+/* Touch-friendly elements */
+body.mobile button,
+body.mobile .role-btn,
+body.mobile .quick-ip-btn,
+body.mobile .template-btn,
+body.mobile .footer-btn {
+    min-height: 44px; /* Apple's recommended minimum touch target size */
+    min-width: 44px;
+}
+
+/* Increase tap targets for mobile */
+body.mobile .btn-icon {
+    padding: 15px;
+}
+
+body.mobile .guess-btn {
+    padding: 20px 15px;
+}
+
+/* Adjust font sizes for better readability */
+body.mobile h1 { font-size: 1.4rem; }
+body.mobile h2 { font-size: 1.2rem; }
+body.mobile h3 { font-size: 1.1rem; }
+body.mobile p, body.mobile span { font-size: 0.95rem; }
+
+/* Stack elements vertically on mobile */
+body.mobile .control-buttons {
+    flex-direction: column;
+}
+
+body.mobile .simulation-buttons {
+    grid-template-columns: 1fr;
+}
+
+/* Adjust spacing for mobile */
+body.mobile .panel-content {
+    gap: 12px;
+}
+
+body.mobile .card {
+    margin-bottom: 8px;
+}
+
+/* Make inputs more touch-friendly */
+body.mobile input[type="text"],
+body.mobile textarea,
+body.mobile select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 12px;
+}
+
+/* Adjust modal for mobile */
+body.mobile .modal-content {
+    width: 95%;
+    margin: 10px;
+}
+
+/* Mobile-specific animations */
+body.mobile .message-item {
+    transform: translate3d(0, 0, 0); /* Hardware acceleration */
+    transition: transform 0.2s;
+}
+
+body.mobile .message-item:active {
+    transform: scale(0.98);
+}
+
+/* Mobile footer adjustments */
+body.mobile .footer-content {
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.mobile .system-controls {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Mobile message list improvements */
+body.mobile .messages-list {
+    max-height: 300px;
+}
+
+body.mobile .message-item {
+    padding: 12px;
+}
+
+/* Mobile toggle improvements */
+body.mobile .toggle-label {
+    padding: 15px;
+}
+
+body.mobile .toggle-label i {
+    font-size: 1.2rem;
+}
+
+/* Mobile stats adjustments */
+body.mobile .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+body.mobile .stat-item {
+    padding: 12px 8px;
+}
+
+body.mobile .stat-value {
+    font-size: 1.3rem;
+}
+
+/* Mobile tooltips and hints */
+body.mobile .card-help {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mobile loading screen adjustments */
+body.mobile .hacker-text {
+    font-size: 1.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+body.mobile .loading-subtitle {
+    font-size: 1rem;
+    padding: 0 10px;
+}
+
+/* Mobile toast positioning */
+body.mobile .toast-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+}
+
+body.mobile .toast {
+    margin: 0;
+    border-radius: 0;
+}
+
+/* Mobile scroll improvements */
+body.mobile ::-webkit-scrollbar {
+    width: 4px;
+}
+
+/* Mobile keyboard avoiding */
+body.mobile textarea:focus {
+    scroll-margin-bottom: 100px;
+}
+
+/* Mobile landscape adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+    body.mobile .main-header {
+        padding: 8px 12px;
+    }
+    
+    body.mobile .panel-header {
+        padding: 12px;
+    }
+    
+    body.mobile .main-content {
+        padding: 8px;
+    }
+    
+    body.mobile .card-body {
+        padding: 10px;
+    }
+    
+    body.mobile textarea {
+        min-height: 60px;
+        max-height: 80px;
+    }
+    
+    body.mobile .messages-list {
+        max-height: 150px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+    body.mobile .logo h1 {
+        font-size: 1rem;
+    }
+    
+    body.mobile .role-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    body.mobile .btn-primary {
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* High-DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    body.mobile {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    body.mobile {
+        min-height: -webkit-fill-available;
+    }
+    
+    body.mobile .main-container {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Dark mode adjustments for mobile */
+@media (prefers-color-scheme: dark) {
+    body.mobile {
+        background: #000000;
+    }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}

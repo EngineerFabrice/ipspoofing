@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎭 IP Spoofing Attack  by FabriceNLab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mobile.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+</head>
+<body class="{{ 'mobile' if device == 'mobile' else 'desktop' }}">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="hacker-text">
+                <span class="char">I</span>
+                <span class="char">P</span>
+                <span class="char"></span>
+                <span class="char">S</span>
+                <span class="char">P</span>
+                <span class="char">O</span>
+                <span class="char">O</span>
+                <span class="char">F</span>
+                <span class="char">I</span>
+                <span class="char">N</span>
+                <span class="char">G</span>
+                <span class="char"></span>
+                <span class="char">L</span>
+                <span class="char">A</span>
+                <span class="char">B</span>
+            </div>
+            <div class="loading-subtitle">Real-Time Attack & Defense Simulation</div>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="loading-tip">
+                <i class="fas fa-lightbulb"></i>
+                <span>Tip: Use PC as Hacker, Phone as Defender for best experience</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-user-secret"></i>
+                    <h1>IP Spoofing Lab</h1>
+                </div>
+                <div class="session-info">
+                    <span class="session-id">Session: {{ session_id }}</span>
+                    <span class="device-badge">
+                        <i class="fas fa-{{ 'mobile-alt' if device == 'mobile' else 'desktop' }}"></i>
+                        {{ device|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="role-switcher">
+                    <button id="switch-to-hacker" class="role-btn hacker-btn {{ 'active' if role == 'hacker' else '' }}">
+                        <i class="fas fa-mask"></i>
+                        <span>Hacker</span>
+                    </button>
+                    <button id="switch-to-defender" class="role-btn defender-btn {{ 'active' if role == 'defender' else '' }}">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Defender</span>
+                    </button>
+                </div>
+                
+                <div class="connection-status">
+                    <span class="status-dot" id="connection-dot"></span>
+                    <span id="connection-status">Connecting...</span>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="mobile-menu-header">
+                <h3>Menu</h3>
+                <button class="close-menu-btn" id="close-menu-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-menu-content">
+                <a href="#hacker-panel" class="mobile-menu-item">
+                    <i class="fas fa-mask"></i> Hacker Tools
+                </a>
+                <a href="#defender-panel" class="mobile-menu-item">
+                    <i class="fas fa-shield-alt"></i> Defender Tools
+                </a>
+                <a href="#stats-panel" class="mobile-menu-item">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </a>
+                <a href="#education-panel" class="mobile-menu-item">
+                    <i class="fas fa-graduation-cap"></i> Education
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hacker Interface -->
+            <section id="hacker-panel" class="panel hacker-panel {{ 'active' if role == 'hacker' else '' }}">
+                <div class="panel-header hacker-header">
+                    <h2><i class="fas fa-user-secret"></i> HACKER CONTROL PANEL</h2>
+                    <div class="panel-subtitle">
+                        <span class="status-badge active">
+                            <i class="fas fa-circle"></i> ANONYMOUS MODE
+                        </span>
+                    </div>
+                </div>
+
+                <div class="panel-content">
+                    <!-- IP Configuration -->
+                    <div class="card ip-config-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-crosshairs"></i> IP SPOOFING CONFIGURATION</h3>
+                            <button class="card-help" data-help="ip-config">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="ip-display">
+                                <div class="ip-item">
+                                    <label><i class="fas fa-user"></i> Your Real IP:</label>
+                                    <div class="real-ip-display" id="real-ip-display">
+                                        <i class="fas fa-spinner fa-spin"></i> Detecting...
+                                    </div>
+                                </div>
+                                
+                                <div class="toggle-container">
+                                    <div class="toggle-option">
+                                        <input type="radio" id="mode-legit" name="ip-mode" value="legit" checked>
+                                        <label for="mode-legit" class="toggle-label legit">
+                                            <i class="fas fa-user-check"></i>
+                                            <span>Use Real IP</span>
+                                            <small>Send with actual IP address</small>
+                                        </label>
+                                    </div>
+                                    <div class="toggle-option">
+                                        <input type="radio" id="mode-spoof" name="ip-mode" value="spoof">
+                                        <label for="mode-spoof" class="toggle-label spoof">
+                                            <i class="fas fa-user-secret"></i>
+                                            <span>Spoof IP Address</span>
+                                            <small>Send with fake IP address</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Spoofed IP Configuration -->
+                                <div class="spoof-config" id="spoof-config">
+                                    <div class="spoof-input-group">
+                                        <label for="spoofed-ip-input">
+                                            <i class="fas fa-address-card"></i> Enter Spoofed IP:
+                                        </label>
+                                        <div class="input-with-button">
+                                            <input type="text" 
+                                                   id="spoofed-ip-input" 
+                                                   placeholder="e.g., 192.168.1.100"
+                                                   value="192.168.1.100">
+                                            <button id="generate-random-ip" class="btn-icon">
+                                                <i class="fas fa-random"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="quick-ips">
+                                        <span class="quick-label">Quick IPs:</span>
+                                        <div class="quick-buttons">
+                                            <button class="quick-ip-btn" data-ip="192.168.1.100">192.168.1.100</button>
+                                            <button class="quick-ip-btn" data-ip="10.0.0.50">10.0.0.50</button>
+                                            <button class="quick-ip-btn" data-ip="8.8.8.8">8.8.8.8</button>
+                                            <button class="quick-ip-btn" data-ip="172.16.0.25">172.16.0.25</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Composition -->
+                    <div class="card message-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-keyboard"></i> CRAFT MESSAGE</h3>
+                            <div class="message-templates">
+                                <button class="template-btn" data-template="normal">
+                                    <i class="fas fa-comment"></i> Normal
+                                </button>
+                                <button class="template-btn" data-template="phishing">
+                                    <i class="fas fa-fish"></i> Phishing
+                                </button>
+                                <button class="template-btn" data-template="attack">
+                                    <i class="fas fa-bomb"></i> Attack
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <textarea id="hacker-message" 
+                                      placeholder="Type your message here...
+Example spoofed: 'URGENT: System admin here. Reset password now!'
+Example DDoS: 'Initiating SYN flood from multiple sources...'
+Example phishing: 'Click http://fake-login.com to verify account'" 
+                                      rows="4"></textarea>
+                            
+                            <div class="message-preview">
+                                <strong>Victim will see:</strong>
+                                <div class="preview-box">
+                                    <span class="preview-ip-label">From IP:</span>
+                                    <span id="preview-ip" class="preview-ip">Your real IP</span>
+                                    <span class="preview-message" id="preview-message">[Message preview]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attack Controls -->
+                    <div class="card attack-controls-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> ATTACK CONTROLS</h3>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="control-buttons">
+                                <button id="send-message-btn" class="btn-primary hacker-send">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>SEND MESSAGE</span>
+                                </button>
+                                
+                                <div class="simulation-buttons">
+                                    <button class="btn-secondary simulate-btn" data-type="ddos">
+                                        <i class="fas fa-cloud-rain"></i>
+                                        <span>Simulate DDoS</span>
+                                    </button>
+                                    <button class="btn-secondary simulate-btn" data-type="phishing">
+                                        <i class="fas fa-fish"></i>
+                                        <span>Simulate Phishing</span>
+                                    </button>
+                                    <button class="btn-secondary simulate-btn" data-type="mitm">
+                                        <i class="fas fa-exchange-alt"></i>
+                                        <span>Simulate MITM</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hacker Stats -->
+                    <div class="card stats-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> ATTACK STATISTICS</h3>
+                            <button id="refresh-hacker-stats" class="btn-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="total-sent">0</div>
+                                    <div class="stat-label">Messages Sent</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="spoofed-sent">0</div>
+                                    <div class="stat-label">Spoofed</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="detected-count">0</div>
+                                    <div class="stat-label">Detected</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="success-rate">0%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Defender Interface -->
+            <section id="defender-panel" class="panel defender-panel {{ 'active' if role == 'defender' else '' }}">
+                <div class="panel-header defender-header">
+                    <h2><i class="fas fa-shield-alt"></i> DEFENDER ANALYSIS PANEL</h2>
+                    <div class="panel-subtitle">
+                        <span class="status-badge monitoring">
+                            <i class="fas fa-eye"></i> MONITORING NETWORK
+                        </span>
+                    </div>
+                </div>
+
+                <div class="panel-content">
+                    <!-- Incoming Messages -->
+                    <div class="card messages-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-inbox"></i> INCOMING TRAFFIC</h3>
+                            <div class="traffic-filter">
+                                <select id="traffic-filter">
+                                    <option value="all">All Messages</option>
+                                    <option value="spoofed">Suspicious Only</option>
+                                    <option value="legitimate">Legitimate Only</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="messages-list" id="messages-list">
+                                <div class="empty-state">
+                                    <i class="fas fa-envelope-open-text"></i>
+                                    <h4>No messages yet</h4>
+                                    <p>Messages will appear here when hackers send them</p>
+                                    <p class="hint">Each message shows the sender's IP address</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Analysis -->
+                    <div class="card analysis-card" id="analysis-card" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-search"></i> MESSAGE ANALYSIS</h3>
+                            <button class="btn-icon close-analysis" id="close-analysis">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="selected-message" id="selected-message-details">
+                                <!-- Message details will be inserted here -->
+                            </div>
+                            
+                            <div class="analysis-controls">
+                                <h4>Is this IP address spoofed?</h4>
+                                
+                                <div class="guess-buttons">
+                                    <button class="guess-btn legit-guess" data-guess="legitimate">
+                                        <i class="fas fa-user-check"></i>
+                                        <span>Legitimate IP</span>
+                                    </button>
+                                    <button class="guess-btn spoof-guess" data-guess="spoofed">
+                                        <i class="fas fa-user-secret"></i>
+                                        <span>Spoofed IP</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="confidence-control">
+                                    <label>
+                                        <i class="fas fa-brain"></i> Confidence: 
+                                        <span id="confidence-value">50</span>%
+                                    </label>
+                                    <input type="range" id="confidence-slider" min="0" max="100" value="50">
+                                </div>
+                                
+                                <button id="submit-analysis" class="btn-primary defender-analyze">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>ANALYZE MESSAGE</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Result -->
+                    <div class="card result-card" id="result-card" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clipboard-check"></i> ANALYSIS RESULT</h3>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="result-content" id="result-content">
+                                <!-- Results will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Defender Tools -->
+                    <div class="card tools-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> DEFENSE TOOLS</h3>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="tools-grid">
+                                <div class="tool-item">
+                                    <i class="fas fa-filter"></i>
+                                    <h4>Ingress Filtering</h4>
+                                    <p>Block packets with impossible source IPs</p>
+                                </div>
+                                <div class="tool-item">
+                                    <i class="fas fa-fingerprint"></i>
+                                    <h4>IP Authentication</h4>
+                                    <p>Cryptographic verification of source</p>
+                                </div>
+                                <div class="tool-item">
+                                    <i class="fas fa-chart-network"></i>
+                                    <h4>Traffic Analysis</h4>
+                                    <p>Monitor for unusual patterns</p>
+                                </div>
+                                <div class="tool-item">
+                                    <i class="fas fa-bell"></i>
+                                    <h4>Alert System</h4>
+                                    <p>Notify of suspicious activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Defender Stats -->
+                    <div class="card defender-stats-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> DEFENSE STATISTICS</h3>
+                            <button id="refresh-defender-stats" class="btn-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="total-analyzed">0</div>
+                                    <div class="stat-label">Analyzed</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value correct" id="correct-detections">0</div>
+                                    <div class="stat-label">Correct</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value incorrect" id="incorrect-detections">0</div>
+                                    <div class="stat-label">Incorrect</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="detection-accuracy">0%</div>
+                                    <div class="stat-label">Accuracy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Panel -->
+            <section id="stats-panel" class="panel stats-panel">
+                <div class="panel-header stats-header">
+                    <h2><i class="fas fa-chart-pie"></i> SYSTEM STATISTICS</h2>
+                </div>
+
+                <div class="panel-content">
+                    <div class="stats-overview">
+                        <div class="stat-card-large">
+                            <div class="stat-icon">
+                                <i class="fas fa-broadcast-tower"></i>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="total-messages-stat">0</div>
+                                <div class="stat-label">Total Messages</div>
+                                <div class="stat-breakdown">
+                                    <span class="breakdown-item legit">
+                                        <i class="fas fa-user-check"></i>
+                                        <span id="legit-messages-stat">0</span> Legitimate
+                                    </span>
+                                    <span class="breakdown-item spoof">
+                                        <i class="fas fa-user-secret"></i>
+                                        <span id="spoofed-messages-stat">0</span> Spoofed
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="attack-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="detailed-stats">
+                        <div class="detailed-stat">
+                            <h4><i class="fas fa-network-wired"></i> Network Activity</h4>
+                            <div class="stat-details">
+                                <div class="detail-item">
+                                    <span>Active Connections:</span>
+                                    <span id="active-connections">0</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Spoofing Rate:</span>
+                                    <span id="spoofing-rate-stat">0%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Detection Rate:</span>
+                                    <span id="detection-rate">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detailed-stat">
+                            <h4><i class="fas fa-user-shield"></i> Top Spoofed IPs</h4>
+                            <div class="top-ips" id="top-spoofed-ips">
+                                <div class="top-ip-item">
+                                    <span class="ip-rank">1</span>
+                                    <span class="ip-address">-</span>
+                                    <span class="ip-count">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Education Panel -->
+            <section id="education-panel" class="panel education-panel">
+                <div class="panel-header education-header">
+                    <h2><i class="fas fa-graduation-cap"></i> EDUCATIONAL RESOURCES</h2>
+                </div>
+
+                <div class="panel-content">
+                    <div class="education-content">
+                        <div class="education-section">
+                            <h3><i class="fas fa-exclamation-triangle"></i> What is IP Spoofing?</h3>
+                            <p>IP spoofing is the creation of Internet Protocol (IP) packets with a false source IP address, for the purpose of impersonating another computing system.</p>
+                            
+                            <div class="key-points">
+                                <div class="point">
+                                    <i class="fas fa-bullseye"></i>
+                                    <strong>Purpose:</strong> Hide identity, impersonate, bypass security
+                                </div>
+                                <div class="point">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <strong>Impact:</strong> DDoS attacks, man-in-the-middle, credential theft
+                                </div>
+                                <div class="point">
+                                    <i class="fas fa-wrench"></i>
+                                    <strong>Prevention:</strong> Ingress filtering, encryption, authentication
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="education-section">
+                            <h3><i class="fas fa-search"></i> Detection Methods</h3>
+                            <div class="detection-methods">
+                                <div class="method">
+                                    <h4>Ingress Filtering</h4>
+                                    <p>Check if source IP is valid for the network interface</p>
+                                </div>
+                                <div class="method">
+                                    <h4>TCP Sequence Analysis</h4>
+                                    <p>Monitor TCP sequence numbers for predictability</p>
+                                </div>
+                                <div class="method">
+                                    <h4>Hop Count Analysis</h4>
+                                    <p>Check TTL values for inconsistencies</p>
+                                </div>
+                                <div class="method">
+                                    <h4>Geolocation Verification</h4>
+                                    <p>Verify if source IP matches expected location</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="education-section">
+                            <h3><i class="fas fa-desktop"></i> Lab Instructions</h3>
+                            <div class="instructions">
+                                <div class="instruction-step">
+                                    <span class="step-number">1</span>
+                                    <p>Use <strong>PC as Hacker</strong> to send spoofed messages</p>
+                                </div>
+                                <div class="instruction-step">
+                                    <span class="step-number">2</span>
+                                    <p>Use <strong>Phone as Defender</strong> to analyze traffic</p>
+                                </div>
+                                <div class="instruction-step">
+                                    <span class="step-number">3</span>
+                                    <p>Try to detect spoofed messages using the tools</p>
+                                </div>
+                                <div class="instruction-step">
+                                    <span class="step-number">4</span>
+                                    <p>Check statistics to see your detection accuracy</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <div class="educational-notice">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>ACADEMIC DEMONSTRATION ONLY - For Educational Purposes</span>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <div class="system-controls">
+                        <button id="clear-all-btn" class="footer-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button id="refresh-all-btn" class="footer-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button id="help-btn" class="footer-btn">
+                            <i class="fas fa-question-circle"></i> Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> Help & Instructions</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h4>How to Use This Lab:</h4>
+                    <p>1. <strong>PC (Hacker):</strong> Send messages with real or spoofed IP addresses</p>
+                    <p>2. <strong>Phone (Defender):</strong> Analyze incoming messages and detect spoofing</p>
+                    <p>3. <strong>Real-time:</strong> Messages appear instantly on both devices</p>
+                    <p>4. <strong>Learn:</strong> Understand how IP spoofing works and how to defend against it</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <script>
+        // Initialize with server data
+        const initialRole = "{{ role }}";
+        const deviceType = "{{ device }}";
+        const sessionId = "{{ session_id }}";
+        
+        console.log(`Initialized: Role=${initialRole}, Device=${deviceType}, Session=${sessionId}`);
+        
+        // Set up toastr
+        toastr.options = {
+            positionClass: deviceType === 'mobile' ? 'toast-bottom-full-width' : 'toast-top-right',
+            timeOut: 3000,
+            closeButton: true
+        };
+    </script>
+</body>
+</html>
