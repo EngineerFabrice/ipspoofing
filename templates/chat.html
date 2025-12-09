@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .device-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .pc-badge {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .phone-badge {
+            background: #10b981;
+            color: white;
+        }
+        
+        .ip-address {
+            font-size: 12px;
+            color: #64748b;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        
+        .message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-left: 40px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 3px solid;
+            max-width: 80%;
+        }
+        
+        .pc-message .message-content {
+            border-left-color: #3b82f6;
+        }
+        
+        .phone-message .message-content {
+            border-left-color: #10b981;
+        }
+        
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .device-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .device-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .device-btn.active {
+            border-color: #4f46e5;
+            background: #4f46e5;
+            color: white;
+        }
+        
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        #messageInput:focus {
+            border-color: #4f46e5;
+        }
+        
+        #sendBtn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        #sendBtn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .typing-indicator {
+            display: none;
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        @media (max-width: 640px) {
+            .chat-container {
+                height: 90vh;
+                border-radius: 0;
+            }
+            
+            .message-content {
+                margin-left: 30px;
+                max-width: 90%;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Live Chat</h1>
+            <p>Welcome to the network messaging demo! Messages will show real IP addresses.</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="device-selector">
+                <button class="device-btn active" data-device="pc">PC</button>
+                <button class="device-btn" data-device="phone">Phone</button>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="messageInput" placeholder="Type your message here...">
+                <button id="sendBtn">Send</button>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                Someone is typing...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate random IP addresses
+        function generateIP() {
+            const octets = [];
+            for (let i = 0; i < 4; i++) {
+                // Generate different IP ranges for variety
+                if (i === 0) {
+                    octets.push(Math.floor(Math.random() * 255));
+                } else {
+                    octets.push(Math.floor(Math.random() * 256));
+                }
+            }
+            return octets.join('.');
+        }
+
+        // Predefined IP addresses for initial messages
+        const initialIPs = {
+            pc1: '127.0.0.1',
+            pc2: '172.31.209.168',
+            phone: '172.31.231.254'
+        };
+
+        let selectedDevice = 'pc';
+        let currentIP = generateIP();
+        let lastTypingTime = 0;
+        let typingTimeout;
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const deviceButtons = document.querySelectorAll('.device-btn');
+
+        // Initialize with sample messages
+        function initializeChat() {
+            addMessage('pc', initialIPs.pc1, 'hello from pc');
+            addMessage('pc', initialIPs.pc2, 'hey');
+            addMessage('phone', initialIPs.phone, 'Phone says hello');
+        }
+
+        // Add message to chat
+        function addMessage(device, ip, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${device}-message`;
+            
+            const deviceName = device === 'pc' ? 'PC' : 'Phone';
+            const deviceClass = device === 'pc' ? 'pc-badge' : 'phone-badge';
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="device-badge ${deviceClass}">${deviceName}</span>
+                    <span class="ip-address">${ip}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Send message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (content) {
+                // Generate new IP for every few messages for realism
+                if (Math.random() > 0.7) {
+                    currentIP = generateIP();
+                }
+                
+                addMessage(selectedDevice, currentIP, content);
+                messageInput.value = '';
+                hideTypingIndicator();
+                
+                // Simulate response after delay
+                if (Math.random() > 0.5) {
+                    setTimeout(() => {
+                        const responses = [
+                            "Got it!",
+                            "Thanks for the message!",
+                            "Interesting...",
+                            "Can you elaborate?",
+                            "I agree!",
+                            "Let's discuss this further."
+                        ];
+                        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                        const randomDevice = Math.random() > 0.5 ? 'pc' : 'phone';
+                        addMessage(randomDevice, generateIP(), randomResponse);
+                    }, 1000 + Math.random() * 2000);
+                }
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            scrollToBottom();
+            
+            // Hide after 3 seconds if no new typing
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(hideTypingIndicator, 3000);
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Device selection
+        deviceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                deviceButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedDevice = button.dataset.device;
+            });
+        });
+
+        // Event Listeners
+        sendBtn.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            const now = Date.now();
+            if (now - lastTypingTime > 1000) {
+                showTypingIndicator();
+                lastTypingTime = now;
+            }
+        });
+
+        // Auto-focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+            initializeChat();
+        });
+
+        // Simulate occasional random messages
+        setInterval(() => {
+            if (Math.random() > 0.8) {
+                const messages = [
+                    "Anyone online?",
+                    "Testing the connection...",
+                    "Hello from the network!",
+                    "This chat is working great!",
+                    "Network status: Connected"
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                const randomDevice = Math.random() > 0.5 ? 'pc' : 'phone';
+                addMessage(randomDevice, generateIP(), randomMessage);
+            }
+        }, 15000);
+    </script>
+</body>
+</html>
