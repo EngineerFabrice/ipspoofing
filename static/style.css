@@ -2320,3 +2320,129 @@ textarea:focus {
         box-shadow: none;
     }
 }
+
+/* Chat Integration Styles */
+.chat-integration-section {
+    background: linear-gradient(135deg, rgba(22, 33, 62, 0.8) 0%, rgba(15, 52, 96, 0.9) 100%);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid rgba(76, 201, 240, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-integration-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4361ee, #4cc9f0, #f72585);
+}
+
+.chat-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+    color: #4cc9f0;
+    text-decoration: none;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #2d3047;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-button:hover {
+    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+    border-color: #4cc9f0;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(76, 201, 240, 0.2);
+}
+
+.chat-button i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #4cc9f0;
+}
+
+.chat-button span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.chat-button small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    color: #b8b8b8;
+}
+
+.chat-description {
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(11, 22, 44, 0.6);
+    border-radius: 6px;
+    border-left: 4px solid #4cc9f0;
+}
+
+.chat-description p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #e6e6e6;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.chat-description i {
+    color: #4cc9f0;
+    margin-top: 2px;
+}
+
+/* Chat indicator animation */
+@keyframes pulseChat {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.chat-button::after {
+    content: 'LIVE';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f72585;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 10px;
+    animation: pulseChat 2s infinite;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Mobile optimization for chat button */
+@media (max-width: 768px) {
+    .chat-button {
+        padding: 15px;
+    }
+    
+    .chat-button i {
+        font-size: 2rem;
+    }
+    
+    .chat-button span {
+        font-size: 1rem;
+    }
+    
+    .chat-button small {
+        font-size: 0.75rem;
+    }
+}
+

@@ -3,121 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chat Demo</title>
+    <title>💬 Live Network Chat - IP Spoofing Lab</title>
+    
+    <!-- Link to your existing styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mobile.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
     <style>
-        * {
+        /* Chat Specific Styles */
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
         }
         
-        .chat-container {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+        .chat-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            height: 80vh;
+            height: 100vh;
         }
         
         .chat-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
             padding: 20px;
-            text-align: center;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 3px solid #4cc9f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         
-        .chat-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 4px;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .chat-header p {
-            font-size: 14px;
+        .header-left h1 {
+            margin: 0;
+            color: #4cc9f0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-left p {
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .user-info {
+            background: rgba(76, 201, 240, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .user-info .device {
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .user-info .ip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
             opacity: 0.9;
+        }
+        
+        .back-button {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .chat-main {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .chat-container {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
         }
         
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #f8fafc;
+            background: #0d1117;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(28, 58, 112, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(112, 28, 89, 0.1) 0%, transparent 20%);
         }
         
         .message {
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .message-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
+            gap: 12px;
+            margin-bottom: 5px;
         }
         
         .device-badge {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             padding: 4px 12px;
-            border-radius: 20px;
+            border-radius: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border: 1px solid transparent;
         }
         
         .pc-badge {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
             color: white;
+            border-color: #4cc9f0;
         }
         
         .phone-badge {
-            background: #10b981;
+            background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
             color: white;
+            border-color: #f72585;
         }
         
         .ip-address {
-            font-size: 12px;
-            color: #64748b;
-            font-family: 'Monaco', 'Consolas', monospace;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #4cc9f0;
+            padding: 2px 8px;
+            background: rgba(76, 201, 240, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .spoofed-badge {
+            background: #f72585;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            margin-left: auto;
+            opacity: 0.7;
         }
         
         .message-content {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-left: 40px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border-left: 3px solid;
-            max-width: 80%;
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.8) 0%, rgba(15, 52, 96, 0.8) 100%);
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-left: 50px;
+            border-left: 4px solid;
+            max-width: 85%;
+            color: #e6e6e6;
+            position: relative;
+            overflow: hidden;
+            word-wrap: break-word;
         }
         
         .pc-message .message-content {
-            border-left-color: #3b82f6;
+            border-left-color: #4361ee;
         }
         
         .phone-message .message-content {
-            border-left-color: #10b981;
+            border-left-color: #f72585;
+        }
+        
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
         }
         
         .chat-input-container {
             padding: 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
+            background: #16213e;
+            border-top: 1px solid #2d3748;
+        }
+        
+        .device-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .device-btn {
+            padding: 10px 20px;
+            border: 2px solid #2d3748;
+            background: #0f3460;
+            color: #b8b8b8;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .device-btn:hover {
+            background: #16213e;
+            border-color: #4cc9f0;
+        }
+        
+        .device-btn.active {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .spoof-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(247, 37, 133, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(247, 37, 133, 0.3);
+        }
+        
+        .spoof-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #f72585;
+        }
+        
+        .spoof-config {
+            display: none;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(11, 22, 44, 0.6);
+            border-radius: 8px;
+            border: 1px solid #2d3748;
+        }
+        
+        .spoof-config.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .ip-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #spoofed-ip-input {
+            flex: 1;
+            padding: 12px;
+            background: #0f3460;
+            border: 2px solid #2d3748;
+            border-radius: 8px;
+            color: #e6e6e6;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        #spoofed-ip-input:focus {
+            border-color: #4cc9f0;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+        }
+        
+        .quick-ips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .quick-ip-btn {
+            background: rgba(76, 201, 240, 0.1);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            color: #4cc9f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .quick-ip-btn:hover {
+            background: rgba(76, 201, 240, 0.2);
+            transform: translateY(-1px);
         }
         
         .input-group {
@@ -125,288 +357,728 @@
             gap: 10px;
         }
         
-        .device-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .device-btn {
-            padding: 8px 16px;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        
-        .device-btn.active {
-            border-color: #4f46e5;
-            background: #4f46e5;
-            color: white;
-        }
-        
         #messageInput {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
+            padding: 14px;
+            background: #0f3460;
+            border: 2px solid #2d3748;
             border-radius: 8px;
+            color: #e6e6e6;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
+            resize: vertical;
+            min-height: 60px;
+            max-height: 120px;
         }
         
         #messageInput:focus {
-            border-color: #4f46e5;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
         }
         
         #sendBtn {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         #sendBtn:hover {
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .typing-indicator {
             display: none;
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 8px;
+            color: #4cc9f0;
+            font-size: 13px;
+            margin-top: 10px;
             font-style: italic;
+            padding-left: 10px;
+        }
+        
+        .typing-indicator.show {
+            display: block;
+            animation: fadeInOut 1.5s infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .chat-sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 300px;
+        }
+        
+        .users-panel, .info-panel, .spoofing-panel {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            padding: 20px;
+        }
+        
+        .users-panel h3, .info-panel h3, .spoofing-panel h3 {
+            margin-top: 0;
+            color: #4cc9f0;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .users-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .avatar-pc {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        
+        .avatar-phone {
+            background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+        }
+        
+        .user-info-small {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .user-device {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        .info-panel p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .spoofing-tip {
+            background: rgba(247, 37, 133, 0.1);
+            border-left: 4px solid #f72585;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .spoofing-tip h4 {
+            margin-top: 0;
+            color: #f72585;
         }
         
         /* Scrollbar styling */
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
+        .chat-messages::-webkit-scrollbar,
+        .users-list::-webkit-scrollbar {
+            width: 8px;
         }
         
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .chat-messages::-webkit-scrollbar-track,
+        .users-list::-webkit-scrollbar-track {
+            background: #0f172a;
         }
         
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
+        .chat-messages::-webkit-scrollbar-thumb,
+        .users-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            border-radius: 4px;
         }
         
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .chat-messages::-webkit-scrollbar-thumb:hover,
+        .users-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
         }
         
-        @media (max-width: 640px) {
-            .chat-container {
-                height: 90vh;
-                border-radius: 0;
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .chat-main {
+                flex-direction: column;
             }
             
-            .message-content {
-                margin-left: 30px;
-                max-width: 90%;
+            .chat-sidebar {
+                min-width: 100%;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
             
             .input-group {
                 flex-direction: column;
             }
+            
+            #sendBtn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>Live Chat</h1>
-            <p>Welcome to the network messaging demo! Messages will show real IP addresses.</p>
-        </div>
+    <div class="chat-wrapper">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><i class="fas fa-comments"></i> Live Network Chat</h1>
+                    <p>Welcome to the IP Spoofing Lab chat! All IP addresses are simulated for educational purposes.</p>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="device">Device: <span id="current-device">{{ device|title }}</span></div>
+                        <div class="ip">Your IP: <span id="current-ip">{{ real_ip }}</span></div>
+                    </div>
+                    <a href="/" class="back-button">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Lab
+                    </a>
+                </div>
+            </div>
+        </header>
         
-        <div class="chat-messages" id="chatMessages">
-            <!-- Messages will appear here -->
-        </div>
-        
-        <div class="chat-input-container">
-            <div class="device-selector">
-                <button class="device-btn active" data-device="pc">PC</button>
-                <button class="device-btn" data-device="phone">Phone</button>
+        <!-- Main Content -->
+        <div class="chat-main">
+            <!-- Chat Messages -->
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be loaded here -->
+                    <div class="welcome-message">
+                        <div class="message pc-message">
+                            <div class="message-header">
+                                <span class="device-badge pc-badge">PC</span>
+                                <span class="ip-address">127.0.0.1</span>
+                                <span class="message-time">09:00</span>
+                            </div>
+                            <div class="message-content">
+                                Welcome to the IP Spoofing Lab chat! This is a simulated network environment.
+                            </div>
+                        </div>
+                        <div class="message pc-message">
+                            <div class="message-header">
+                                <span class="device-badge pc-badge">PC</span>
+                                <span class="ip-address">172.31.209.168</span>
+                                <span class="message-time">09:01</span>
+                            </div>
+                            <div class="message-content">
+                                hey
+                            </div>
+                        </div>
+                        <div class="message phone-message">
+                            <div class="message-header">
+                                <span class="device-badge phone-badge">Phone</span>
+                                <span class="ip-address">172.31.231.254</span>
+                                <span class="message-time">09:02</span>
+                            </div>
+                            <div class="message-content">
+                                Phone says hello
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="chat-input-container">
+                    <!-- Device Selection -->
+                    <div class="device-selector">
+                        <button class="device-btn active" data-device="pc">
+                            <i class="fas fa-desktop"></i>
+                            <span>PC / Server</span>
+                        </button>
+                        <button class="device-btn" data-device="phone">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>Mobile Device</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Spoofing Toggle -->
+                    <div class="spoof-toggle">
+                        <label>
+                            <input type="checkbox" id="spoof-toggle">
+                            <i class="fas fa-user-secret"></i>
+                            Enable IP Spoofing
+                            <small>(Simulate different IP address)</small>
+                        </label>
+                    </div>
+                    
+                    <!-- Spoof Configuration -->
+                    <div class="spoof-config" id="spoof-config">
+                        <div class="ip-input-group">
+                            <input type="text" 
+                                   id="spoofed-ip-input" 
+                                   placeholder="Enter IP to spoof (e.g., 8.8.8.8)"
+                                   value="8.8.8.8">
+                            <button id="generate-ip" class="quick-ip-btn">
+                                <i class="fas fa-random"></i>
+                            </button>
+                        </div>
+                        <div class="quick-ips">
+                            <button class="quick-ip-btn" data-ip="8.8.8.8">Google DNS</button>
+                            <button class="quick-ip-btn" data-ip="1.1.1.1">Cloudflare</button>
+                            <button class="quick-ip-btn" data-ip="192.168.1.100">Local Device</button>
+                            <button class="quick-ip-btn" data-ip="10.0.0.1">Gateway</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Message Input -->
+                    <div class="input-group">
+                        <textarea id="messageInput" 
+                                  placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
+                                  rows="2"></textarea>
+                        <button id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Send
+                        </button>
+                    </div>
+                    
+                    <!-- Typing Indicator -->
+                    <div class="typing-indicator" id="typingIndicator">
+                        <i class="fas fa-keyboard"></i>
+                        <span id="typing-user">Someone</span> is typing...
+                    </div>
+                </div>
             </div>
             
-            <div class="input-group">
-                <input type="text" id="messageInput" placeholder="Type your message here...">
-                <button id="sendBtn">Send</button>
-            </div>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                Someone is typing...
+            <!-- Sidebar -->
+            <div class="chat-sidebar">
+                <!-- Online Users -->
+                <div class="users-panel">
+                    <h3><i class="fas fa-users"></i> Online Users</h3>
+                    <div class="users-list" id="usersList">
+                        <!-- Users will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Information Panel -->
+                <div class="info-panel">
+                    <h3><i class="fas fa-info-circle"></i> Chat Information</h3>
+                    <p>This chat simulates network traffic with real-time IP address display.</p>
+                    <p><strong>Educational Purpose:</strong> Learn how IP spoofing works by simulating different source addresses.</p>
+                    
+                    <div class="spoofing-tip">
+                        <h4><i class="fas fa-lightbulb"></i> IP Spoofing Tip</h4>
+                        <p>Try enabling IP spoofing to send messages from different IP addresses. Watch how it appears to other users!</p>
+                    </div>
+                </div>
+                
+                <!-- Spoofing Stats -->
+                <div class="spoofing-panel">
+                    <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Messages Sent:</span>
+                            <span class="stat-value" id="messages-sent">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Spoofed Messages:</span>
+                            <span class="stat-value" id="spoofed-messages">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Online Users:</span>
+                            <span class="stat-value" id="online-users">1</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
     <script>
-        // Generate random IP addresses
-        function generateIP() {
+        // Initialize variables
+        let socket;
+        let currentDevice = '{{ device }}' || 'pc';
+        let username = `User_${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+        let isSpoofing = false;
+        let spoofedIp = '8.8.8.8';
+        let lastTypingTime = 0;
+        let typingTimeout;
+        let messagesSent = 0;
+        let spoofedMessages = 0;
+        
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingUserSpan = document.getElementById('typing-user');
+        const deviceButtons = document.querySelectorAll('.device-btn');
+        const spoofToggle = document.getElementById('spoof-toggle');
+        const spoofConfig = document.getElementById('spoof-config');
+        const spoofedIpInput = document.getElementById('spoofed-ip-input');
+        const generateIpBtn = document.getElementById('generate-ip');
+        const quickIpButtons = document.querySelectorAll('.quick-ip-btn');
+        const usersList = document.getElementById('usersList');
+        
+        // Initialize Socket.IO connection
+        function initSocket() {
+            socket = io();
+            
+            // Connection events
+            socket.on('connect', () => {
+                console.log('Connected to chat server');
+                
+                // Join chat
+                socket.emit('chat_join', {
+                    username: username,
+                    device: currentDevice
+                });
+                
+                // Load previous messages
+                fetch('/api/chat/messages')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.messages && data.messages.length > 0) {
+                            data.messages.forEach(msg => addMessageToChat(msg, false));
+                        }
+                    });
+            });
+            
+            // Chat messages
+            socket.on('new_chat_message', (message) => {
+                addMessageToChat(message, true);
+                if (message.is_spoofed) {
+                    spoofedMessages++;
+                    updateStats();
+                }
+            });
+            
+            // User events
+            socket.on('chat_welcome', (data) => {
+                console.log(data.message);
+                updateStats();
+            });
+            
+            socket.on('chat_user_joined', (data) => {
+                console.log(`${data.username} joined the chat`);
+                addUserToList(data.username, data.device);
+                updateOnlineUsers();
+            });
+            
+            socket.on('user_typing', (data) => {
+                if (data.username !== username) {
+                    typingUserSpan.textContent = data.username;
+                    showTypingIndicator();
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                    }, 3000);
+                }
+            });
+            
+            // Error handling
+            socket.on('chat_error', (data) => {
+                alert(`Error: ${data.message}`);
+            });
+            
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                alert('Failed to connect to chat server. Please refresh.');
+            });
+        }
+        
+        // Add message to chat
+        function addMessageToChat(message, scrollToBottom = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.device.toLowerCase()}-message`;
+            
+            const time = message.timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            let spoofedBadge = '';
+            if (message.is_spoofed) {
+                spoofedBadge = '<span class="spoofed-badge">SPOOFED</span>';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="device-badge ${message.device.toLowerCase()}-badge">${message.device}</span>
+                    <span class="ip-address">${message.ip}</span>
+                    ${spoofedBadge}
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">${message.message}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            
+            if (scrollToBottom) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        
+        // Send message
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            isSpoofing = spoofToggle.checked;
+            spoofedIp = spoofedIpInput.value.trim();
+            
+            // Validate IP if spoofing
+            if (isSpoofing && !validateIP(spoofedIp)) {
+                alert('Please enter a valid IP address (e.g., 192.168.1.100)');
+                return;
+            }
+            
+            // Prepare message data
+            const messageData = {
+                username: username,
+                device: currentDevice,
+                message: message,
+                is_spoofing: isSpoofing
+            };
+            
+            if (isSpoofing) {
+                messageData.spoofed_ip = spoofedIp;
+            }
+            
+            // Send via Socket.IO
+            socket.emit('chat_message', messageData);
+            
+            // Also send via HTTP API for persistence
+            fetch('/api/chat/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    device: currentDevice,
+                    use_spoofing: isSpoofing,
+                    spoofed_ip: isSpoofing ? spoofedIp : ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messagesSent++;
+                    updateStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+            
+            // Clear input and hide typing indicator
+            messageInput.value = '';
+            hideTypingIndicator();
+        }
+        
+        // Validate IP address
+        function validateIP(ip) {
+            const pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+            if (!pattern.test(ip)) return false;
+            
+            const octets = ip.split('.');
+            for (let octet of octets) {
+                const num = parseInt(octet);
+                if (num < 0 || num > 255) return false;
+            }
+            
+            return true;
+        }
+        
+        // Generate random IP
+        function generateRandomIP() {
             const octets = [];
             for (let i = 0; i < 4; i++) {
-                // Generate different IP ranges for variety
                 if (i === 0) {
-                    octets.push(Math.floor(Math.random() * 255));
+                    octets.push(Math.floor(Math.random() * 223) + 1); // 1-223 (excluding multicast/broadcast)
                 } else {
                     octets.push(Math.floor(Math.random() * 256));
                 }
             }
             return octets.join('.');
         }
-
-        // Predefined IP addresses for initial messages
-        const initialIPs = {
-            pc1: '127.0.0.1',
-            pc2: '172.31.209.168',
-            phone: '172.31.231.254'
-        };
-
-        let selectedDevice = 'pc';
-        let currentIP = generateIP();
-        let lastTypingTime = 0;
-        let typingTimeout;
-
-        // DOM Elements
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const deviceButtons = document.querySelectorAll('.device-btn');
-
-        // Initialize with sample messages
-        function initializeChat() {
-            addMessage('pc', initialIPs.pc1, 'hello from pc');
-            addMessage('pc', initialIPs.pc2, 'hey');
-            addMessage('phone', initialIPs.phone, 'Phone says hello');
+        
+        // Update statistics display
+        function updateStats() {
+            document.getElementById('messages-sent').textContent = messagesSent;
+            document.getElementById('spoofed-messages').textContent = spoofedMessages;
         }
-
-        // Add message to chat
-        function addMessage(device, ip, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${device}-message`;
+        
+        // Update online users count
+        function updateOnlineUsers() {
+            const userCount = document.querySelectorAll('.user-item').length;
+            document.getElementById('online-users').textContent = userCount;
+        }
+        
+        // Add user to list
+        function addUserToList(username, device) {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
             
-            const deviceName = device === 'pc' ? 'PC' : 'Phone';
-            const deviceClass = device === 'pc' ? 'pc-badge' : 'phone-badge';
+            const avatarClass = device === 'pc' ? 'avatar-pc' : 'avatar-phone';
+            const avatarIcon = device === 'pc' ? 'fa-desktop' : 'fa-mobile-alt';
             
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="device-badge ${deviceClass}">${deviceName}</span>
-                    <span class="ip-address">${ip}</span>
+            userItem.innerHTML = `
+                <div class="user-avatar ${avatarClass}">
+                    <i class="fas ${avatarIcon}"></i>
                 </div>
-                <div class="message-content">${content}</div>
+                <div class="user-info-small">
+                    <div class="user-name">${username}</div>
+                    <div class="user-device">${device.toUpperCase()}</div>
+                </div>
             `;
             
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
+            usersList.appendChild(userItem);
         }
-
-        // Send message
-        function sendMessage() {
-            const content = messageInput.value.trim();
-            if (content) {
-                // Generate new IP for every few messages for realism
-                if (Math.random() > 0.7) {
-                    currentIP = generateIP();
-                }
-                
-                addMessage(selectedDevice, currentIP, content);
-                messageInput.value = '';
-                hideTypingIndicator();
-                
-                // Simulate response after delay
-                if (Math.random() > 0.5) {
-                    setTimeout(() => {
-                        const responses = [
-                            "Got it!",
-                            "Thanks for the message!",
-                            "Interesting...",
-                            "Can you elaborate?",
-                            "I agree!",
-                            "Let's discuss this further."
-                        ];
-                        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                        const randomDevice = Math.random() > 0.5 ? 'pc' : 'phone';
-                        addMessage(randomDevice, generateIP(), randomResponse);
-                    }, 1000 + Math.random() * 2000);
-                }
-            }
-        }
-
-        // Show typing indicator
+        
+        // Typing indicator functions
         function showTypingIndicator() {
-            typingIndicator.style.display = 'block';
-            scrollToBottom();
-            
-            // Hide after 3 seconds if no new typing
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(hideTypingIndicator, 3000);
+            typingIndicator.classList.add('show');
         }
-
-        // Hide typing indicator
+        
         function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
+            typingIndicator.classList.remove('show');
         }
-
-        // Scroll to bottom of chat
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Device selection
+        
+        // Event Listeners
         deviceButtons.forEach(button => {
             button.addEventListener('click', () => {
                 deviceButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                selectedDevice = button.dataset.device;
+                currentDevice = button.dataset.device;
+                document.getElementById('current-device').textContent = currentDevice.toUpperCase();
+                
+                // Update user in Socket.IO
+                socket.emit('chat_join', {
+                    username: username,
+                    device: currentDevice
+                });
             });
         });
-
-        // Event Listeners
+        
+        spoofToggle.addEventListener('change', () => {
+            if (spoofToggle.checked) {
+                spoofConfig.classList.add('show');
+            } else {
+                spoofConfig.classList.remove('show');
+            }
+        });
+        
+        generateIpBtn.addEventListener('click', () => {
+            spoofedIpInput.value = generateRandomIP();
+        });
+        
+        quickIpButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.dataset.ip) {
+                    spoofedIpInput.value = button.dataset.ip;
+                }
+            });
+        });
+        
         sendBtn.addEventListener('click', sendMessage);
-
+        
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         });
-
+        
         messageInput.addEventListener('input', () => {
             const now = Date.now();
             if (now - lastTypingTime > 1000) {
-                showTypingIndicator();
+                socket.emit('chat_typing', {
+                    username: username,
+                    is_typing: true
+                });
                 lastTypingTime = now;
             }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('chat_typing', {
+                    username: username,
+                    is_typing: false
+                });
+            }, 2000);
         });
-
-        // Auto-focus input on load
-        window.addEventListener('load', () => {
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initSocket();
+            
+            // Add current user to list
+            addUserToList(username, currentDevice);
+            updateOnlineUsers();
+            updateStats();
+            
+            // Focus input field
             messageInput.focus();
-            initializeChat();
+            
+            // Add simulated network messages
+            setTimeout(() => {
+                addMessageToChat({
+                    device: 'PC',
+                    ip: '192.168.1.100',
+                    message: 'Network connection established successfully',
+                    timestamp: '09:05',
+                    is_spoofed: false
+                }, true);
+            }, 2000);
+            
+            setTimeout(() => {
+                addMessageToChat({
+                    device: 'Phone',
+                    ip: '172.31.231.254',
+                    message: 'Testing mobile connection with IP spoofing simulation',
+                    timestamp: '09:07',
+                    is_spoofed: true
+                }, true);
+            }, 4000);
         });
-
-        // Simulate occasional random messages
-        setInterval(() => {
-            if (Math.random() > 0.8) {
-                const messages = [
-                    "Anyone online?",
-                    "Testing the connection...",
-                    "Hello from the network!",
-                    "This chat is working great!",
-                    "Network status: Connected"
-                ];
-                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                const randomDevice = Math.random() > 0.5 ? 'pc' : 'phone';
-                addMessage(randomDevice, generateIP(), randomMessage);
-            }
-        }, 15000);
     </script>
 </body>
 </html>

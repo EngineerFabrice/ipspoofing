@@ -4,7 +4,7 @@ Real-Time IP Spoofing Attack & Defense Lab
 Educational tool for demonstrating IP spoofing attacks and detection methods
 """
 
-from flask import Flask, render_template, request, jsonify, session, Response
+from flask import Flask, render_template, request, jsonify, session, Response, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 import sqlite3
@@ -14,6 +14,7 @@ import hashlib
 import time
 import json
 import os
+import re
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize Flask app
@@ -120,7 +121,6 @@ def generate_spoofed_ips():
 
 def validate_ip(ip):
     """Validate IP address format"""
-    import re
     pattern = r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$'
     if not re.match(pattern, ip):
         return False
@@ -154,6 +154,8 @@ def is_internal_ip(ip):
         return True
     
     return False
+
+# ==================== ROUTES ====================
 
 @app.route('/')
 def index():
@@ -189,6 +191,36 @@ def index():
     return render_template('index.html',
                          session_id=session['session_id'],
                          role=session['role'],
+                         device=device,
+                         real_ip=real_ip)
+
+@app.route('/chat')
+@app.route('/chat.html')
+def chat():
+    """Live chat interface page - handles both /chat and /chat.html"""
+    # Generate unique session ID if not exists
+    if 'session_id' not in session:
+        session['session_id'] = hashlib.md5(
+            f"{datetime.now()}{random.random()}".encode()
+        ).hexdigest()[:12]
+        session.permanent = True
+    
+    # Get real IP
+    real_ip = get_real_ip(request)
+    
+    # Detect device
+    user_agent = request.headers.get('User-Agent', '').lower()
+    if any(x in user_agent for x in ['mobile', 'android', 'iphone', 'ipad', 'tablet']):
+        device = 'phone'
+    else:
+        device = 'pc'
+    
+    # Store chat session
+    if 'chat_device' not in session:
+        session['chat_device'] = device
+    
+    return render_template('chat.html',
+                         session_id=session['session_id'],
                          device=device,
                          real_ip=real_ip)
 
@@ -339,7 +371,110 @@ def export_data():
         'messages': messages
     })
 
-# Socket.IO Event Handlers
+# ==================== CHAT API ROUTES ====================
+
+@app.route('/api/chat/messages')
+def get_chat_messages():
+    """Get recent chat messages"""
+    conn = sqlite3.connect('messages.db', check_same_thread=False)
+    c = conn.cursor()
+    
+    # Get chat messages (using attack_type='chat' to differentiate)
+    c.execute('''SELECT 
+                    displayed_ip, 
+                    message, 
+                    strftime('%H:%M', timestamp) as time,
+                    device,
+                    is_spoofed
+                 FROM messages 
+                 WHERE attack_type = 'chat' 
+                 ORDER BY timestamp DESC 
+                 LIMIT 50''')
+    messages = c.fetchall()
+    
+    conn.close()
+    
+    # Format messages
+    formatted_messages = []
+    for msg in reversed(messages):  # Reverse to get chronological order
+        formatted_messages.append({
+            'device': 'PC' if msg[3] == 'pc' else 'Phone',
+            'ip': msg[0],
+            'message': msg[1],
+            'time': msg[2],
+            'is_spoofed': bool(msg[4])
+        })
+    
+    return jsonify({'messages': formatted_messages})
+
+@app.route('/api/chat/send', methods=['POST'])
+def send_chat_message():
+    """Send a chat message"""
+    try:
+        data = request.json
+        message = data.get('message', '').strip()
+        device = data.get('device', 'pc')
+        use_spoofing = data.get('use_spoofing', False)
+        spoofed_ip = data.get('spoofed_ip', '')
+        
+        if not message:
+            return jsonify({'status': 'error', 'message': 'Message cannot be empty'})
+        
+        # Get real IP
+        real_ip = get_real_ip(request)
+        
+        # Validate and prepare IP
+        if use_spoofing and spoofed_ip:
+            if not validate_ip(spoofed_ip):
+                return jsonify({'status': 'error', 'message': 'Invalid IP format'})
+            displayed_ip = spoofed_ip
+            is_spoofed = 1
+        else:
+            displayed_ip = real_ip
+            is_spoofed = 0
+            spoofed_ip = real_ip
+        
+        # Store in database
+        conn = sqlite3.connect('messages.db', check_same_thread=False)
+        c = conn.cursor()
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        c.execute('''INSERT INTO messages 
+                     (session_id, role, real_ip, spoofed_ip, displayed_ip, 
+                      is_spoofed, message, timestamp, device, attack_type) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (session.get('session_id'), 'chat_user', real_ip, spoofed_ip, displayed_ip,
+                   is_spoofed, message, timestamp, device, 'chat'))
+        
+        message_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Prepare response
+        response = {
+            'status': 'success',
+            'message_id': message_id,
+            'device': device.upper(),
+            'ip': displayed_ip,
+            'message': message,
+            'timestamp': timestamp,
+            'is_spoofed': bool(is_spoofed),
+            'time': datetime.now().strftime('%H:%M')
+        }
+        
+        # Broadcast via Socket.IO for real-time updates
+        socketio.emit('chat_message', response, broadcast=True)
+        
+        print(f"💬 Chat message: {device} {displayed_ip}: {message[:50]}...")
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"❌ Chat error: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# ==================== SOCKET.IO HANDLERS ====================
+
 @socketio.on('connect')
 def handle_connect():
     """Handle new client connection"""
@@ -438,7 +573,7 @@ def handle_send_message(data):
         # Store in database
         conn = sqlite3.connect('messages.db', check_same_thread=False)
         c = conn.cursor()
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = datetime.now().strftime('%Y-%m-d %H:%M:%S')
         
         c.execute('''INSERT INTO messages 
                      (session_id, role, real_ip, spoofed_ip, displayed_ip, 
@@ -599,66 +734,6 @@ def handle_analyze_message(data):
         print(f"❌ Error analyzing message: {str(e)}")
         emit('error', {'message': f'Analysis error: {str(e)}'})
 
-def generate_analysis_hints(real_ip, displayed_ip, is_spoofed, is_correct, message):
-    """Generate educational hints for analysis"""
-    hints = []
-    
-    if is_spoofed:
-        hints.append("🎭 **SPOOFED IP DETECTED**")
-        hints.append(f"📡 **Real sender**: {real_ip}")
-        hints.append(f"🎭 **Displayed as**: {displayed_ip}")
-        
-        # Technical analysis
-        if is_internal_ip(displayed_ip):
-            hints.append("🔍 **Private IP range used** - Common in spoofing attacks")
-            
-            if displayed_ip.startswith("192.168."):
-                hints.append("   • Class C private network (192.168.x.x)")
-            elif displayed_ip.startswith("10."):
-                hints.append("   • Class A private network (10.x.x.x)")
-            elif displayed_ip.startswith("172.16."):
-                hints.append("   • Class B private network (172.16.x.x - 172.31.x.x)")
-            
-            hints.append("   ⚠️ External traffic shouldn't come from private IPs")
-        
-        # Message content analysis
-        suspicious_keywords = ['urgent', 'password', 'click', 'verify', 'reset', 'security', 'login']
-        if any(keyword in message.lower() for keyword in suspicious_keywords):
-            hints.append("📝 **Suspicious keywords detected** - Possible phishing attempt")
-        
-        # IP range consistency
-        if real_ip.split('.')[:2] == displayed_ip.split('.')[:2]:
-            hints.append("🎯 **Same subnet spoofing** - More sophisticated attack")
-        else:
-            hints.append("🌐 **Different subnet** - Classic IP spoofing")
-            
-    else:
-        hints.append("✅ **LEGITIMATE COMMUNICATION**")
-        hints.append(f"📡 **IP verified**: {real_ip}")
-        
-        if is_internal_ip(real_ip):
-            hints.append("🏠 **Internal network traffic** - Expected behavior")
-        else:
-            hints.append("🌍 **External IP** - Normal internet traffic")
-    
-    # Educational tips
-    hints.append("\n🔒 **DEFENSE TIPS:**")
-    hints.append("1. **Ingress filtering** - Block packets with impossible source IPs")
-    hints.append("2. **Egress filtering** - Prevent your network from sending spoofed packets")
-    hints.append("3. **Use encryption** - SSL/TLS can prevent some MITM attacks")
-    hints.append("4. **Implement IPsec** - For authenticated IP communications")
-    
-    if is_correct:
-        hints.append("\n🎉 **GREAT JOB!** Your detection was correct!")
-    else:
-        hints.append("\n💡 **LEARNING OPPORTUNITY:**")
-        if is_spoofed:
-            hints.append("   Look for private IPs in external traffic")
-        else:
-            hints.append("   Not all suspicious-looking messages are spoofed")
-    
-    return hints
-
 @socketio.on('request_history')
 def handle_request_history():
     """Send message history to new client"""
@@ -778,6 +853,177 @@ def handle_ping():
         active_connections[request.sid]['last_activity'] = time.time()
     emit('pong', {'timestamp': time.time()})
 
+# ==================== CHAT SOCKET.IO HANDLERS ====================
+
+@socketio.on('chat_join')
+def handle_chat_join(data):
+    """Handle user joining chat"""
+    session_id = request.sid
+    username = data.get('username', f'User_{session_id[:6]}')
+    device = data.get('device', 'pc')
+    
+    # Store in active connections
+    active_connections[session_id] = {
+        'type': 'chat',
+        'username': username,
+        'device': device,
+        'joined_at': time.time(),
+        'last_activity': time.time()
+    }
+    
+    print(f"💬 Chat join: {username} ({device})")
+    
+    # Send welcome message
+    emit('chat_welcome', {
+        'message': f'Welcome to the chat, {username}!',
+        'active_users': len([c for c in active_connections.values() if c.get('type') == 'chat']),
+        'timestamp': datetime.now().strftime('%H:%M:%S')
+    })
+    
+    # Notify others
+    socketio.emit('chat_user_joined', {
+        'username': username,
+        'device': device,
+        'active_users': len([c for c in active_connections.values() if c.get('type') == 'chat']),
+        'timestamp': datetime.now().strftime('%H:%M:%S')
+    }, broadcast=True, include_self=False)
+
+@socketio.on('chat_message')
+def handle_chat_message(data):
+    """Handle chat messages via WebSocket"""
+    message = data.get('message', '').strip()
+    device = data.get('device', 'pc')
+    username = data.get('username', f'User_{request.sid[:6]}')
+    
+    if not message:
+        emit('chat_error', {'message': 'Message cannot be empty'})
+        return
+    
+    # Get user info
+    user_info = active_connections.get(request.sid, {})
+    
+    # Generate IP based on device
+    if device == 'pc':
+        ip = f"192.168.1.{random.randint(100, 150)}"
+    else:
+        ip = f"192.168.1.{random.randint(200, 254)}"
+    
+    # Check if spoofing
+    is_spoofing = data.get('is_spoofing', False)
+    if is_spoofing:
+        spoofed_ips = ['8.8.8.8', '1.1.1.1', '208.67.222.222', '172.31.209.168']
+        ip = random.choice(spoofed_ips)
+    
+    # Create message object
+    message_obj = {
+        'id': str(time.time()),
+        'username': username,
+        'device': device.upper(),
+        'ip': ip,
+        'message': message,
+        'timestamp': datetime.now().strftime('%H:%M:%S'),
+        'is_spoofed': is_spoofing,
+        'type': 'chat'
+    }
+    
+    # Broadcast to all chat users
+    socketio.emit('new_chat_message', message_obj, broadcast=True)
+    
+    # Store in database
+    try:
+        conn = sqlite3.connect('messages.db', check_same_thread=False)
+        c = conn.cursor()
+        
+        # Note: We're using '127.0.0.1' as real_ip since it's simulated
+        c.execute('''INSERT INTO messages 
+                     (session_id, role, real_ip, spoofed_ip, displayed_ip, 
+                      is_spoofed, message, timestamp, device, attack_type) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (request.sid, 'chat_user', '127.0.0.1', ip, ip,
+                   1 if is_spoofing else 0, message, 
+                   datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                   device, 'chat'))
+        
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")
+
+@socketio.on('chat_typing')
+def handle_chat_typing(data):
+    """Handle typing indicators"""
+    username = data.get('username', 'Someone')
+    is_typing = data.get('is_typing', False)
+    
+    # Broadcast typing status (except to sender)
+    socketio.emit('user_typing', {
+        'username': username,
+        'is_typing': is_typing,
+        'timestamp': time.time()
+    }, broadcast=True, include_self=False)
+
+# ==================== HELPER FUNCTIONS ====================
+
+def generate_analysis_hints(real_ip, displayed_ip, is_spoofed, is_correct, message):
+    """Generate educational hints for analysis"""
+    hints = []
+    
+    if is_spoofed:
+        hints.append("🎭 **SPOOFED IP DETECTED**")
+        hints.append(f"📡 **Real sender**: {real_ip}")
+        hints.append(f"🎭 **Displayed as**: {displayed_ip}")
+        
+        # Technical analysis
+        if is_internal_ip(displayed_ip):
+            hints.append("🔍 **Private IP range used** - Common in spoofing attacks")
+            
+            if displayed_ip.startswith("192.168."):
+                hints.append("   • Class C private network (192.168.x.x)")
+            elif displayed_ip.startswith("10."):
+                hints.append("   • Class A private network (10.x.x.x)")
+            elif displayed_ip.startswith("172.16."):
+                hints.append("   • Class B private network (172.16.x.x - 172.31.x.x)")
+            
+            hints.append("   ⚠️ External traffic shouldn't come from private IPs")
+        
+        # Message content analysis
+        suspicious_keywords = ['urgent', 'password', 'click', 'verify', 'reset', 'security', 'login']
+        if any(keyword in message.lower() for keyword in suspicious_keywords):
+            hints.append("📝 **Suspicious keywords detected** - Possible phishing attempt")
+        
+        # IP range consistency
+        if real_ip.split('.')[:2] == displayed_ip.split('.')[:2]:
+            hints.append("🎯 **Same subnet spoofing** - More sophisticated attack")
+        else:
+            hints.append("🌐 **Different subnet** - Classic IP spoofing")
+            
+    else:
+        hints.append("✅ **LEGITIMATE COMMUNICATION**")
+        hints.append(f"📡 **IP verified**: {real_ip}")
+        
+        if is_internal_ip(real_ip):
+            hints.append("🏠 **Internal network traffic** - Expected behavior")
+        else:
+            hints.append("🌍 **External IP** - Normal internet traffic")
+    
+    # Educational tips
+    hints.append("\n🔒 **DEFENSE TIPS:**")
+    hints.append("1. **Ingress filtering** - Block packets with impossible source IPs")
+    hints.append("2. **Egress filtering** - Prevent your network from sending spoofed packets")
+    hints.append("3. **Use encryption** - SSL/TLS can prevent some MITM attacks")
+    hints.append("4. **Implement IPsec** - For authenticated IP communications")
+    
+    if is_correct:
+        hints.append("\n🎉 **GREAT JOB!** Your detection was correct!")
+    else:
+        hints.append("\n💡 **LEARNING OPPORTUNITY:**")
+        if is_spoofed:
+            hints.append("   Look for private IPs in external traffic")
+        else:
+            hints.append("   Not all suspicious-looking messages are spoofed")
+    
+    return hints
+
 def get_local_ip():
     """Get local IP address for network access"""
     import socket
@@ -789,6 +1035,35 @@ def get_local_ip():
         return local_ip
     except:
         return '127.0.0.1'
+
+# ==================== ERROR HANDLERS ====================
+
+@app.errorhandler(404)
+def not_found_error(error):
+    """Handle 404 errors"""
+    return jsonify({
+        'status': 'error',
+        'message': 'Route not found',
+        'available_routes': [
+            '/',
+            '/chat',
+            '/stats',
+            '/client_info',
+            '/attack_logs',
+            '/api/chat/messages'
+        ]
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    return jsonify({
+        'status': 'error',
+        'message': 'Internal server error',
+        'error': str(error)
+    }), 500
+
+# ==================== MAIN ====================
 
 if __name__ == '__main__':
     # Clear terminal
@@ -824,6 +1099,11 @@ if __name__ == '__main__':
     print("   • Educational hints and defense tips")
     print("   • Live statistics and connection monitoring")
     
+    print("\n💬 NEW CHAT FEATURE:")
+    print("   • Live network chat with IP display")
+    print("   • IP spoofing simulation in chat")
+    print("   • Access at: http://localhost:5000/chat")
+    
     print("\n⚠️  SECURITY NOTICE:")
     print("   • This is an EDUCATIONAL TOOL only")
     print("   • All communication stays within your local network")
@@ -833,13 +1113,14 @@ if __name__ == '__main__':
     print("\n🚀 Starting server... (Press Ctrl+C to stop)")
     print("📊 Dashboard available at http://localhost:5000")
     print("📱 Mobile access at http://{}:5000".format(local_ip))
+    print("💬 Live Chat available at http://localhost:5000/chat")
     
     # Start the server
     socketio.run(
         app,
         host='0.0.0.0',
         port=5000,
-        debug=False,
+        debug=True,  # Changed to True for better debugging
         allow_unsafe_werkzeug=True,
-        log_output=False
+        log_output=True
     )

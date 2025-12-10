@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🎭 IP Spoofing Attack & Defense Lab</title>
+    <title>🎭 IP Spoofing Attack & Defense BY ENG.Fabrice</title>
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -57,7 +57,8 @@
             <div class="header-left">
                 <div class="logo">
                     <i class="fas fa-user-secret"></i>
-                    <h1>IP Spoofing Lab</h1>
+                    <h1>IP Spoofing by ENG Fabrice
+                    </h1>
                 </div>
                 <div class="session-info">
                     <span class="session-id">Session: {{ session_id }}</span>
@@ -79,6 +80,87 @@
                     <span class="connections-count" id="connections-count">0 online</span>
                 </div>
             </div>
+
+            <div class="chat-button-container">
+    <a href="{{ url_for('chat') }}" class="chat-button" target="_blank">
+        <i class="fas fa-comments"></i>
+        <span>Live Network Chat</span>
+        <small>Real-time messaging with IP spoofing simulated by ENG.Fabrice</small>
+        <span class="live-badge">LIVE</span>
+    </a>
+</div>
+
+<style>
+.chat-button-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.chat-button {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+    color: #4cc9f0;
+    text-decoration: none;
+    padding: 20px 30px;
+    border-radius: 12px;
+    border: 2px solid #2d3047;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    max-width: 300px;
+    width: 100%;
+}
+
+.chat-button:hover {
+    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+    border-color: #4cc9f0;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(76, 201, 240, 0.2);
+}
+
+.chat-button i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #4cc9f0;
+}
+
+.chat-button span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.chat-button small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    color: #b8b8b8;
+    max-width: 250px;
+    line-height: 1.4;
+}
+
+.live-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f72585;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 10px;
+    animation: pulseChat 2s infinite;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes pulseChat {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
             
             <div class="header-right">
                 <div class="role-switcher">
@@ -283,7 +365,17 @@
                         <div class="card-header">
                             <h3><i class="fas fa-keyboard"></i> COMPOSE MESSAGE</h3>
                             <div class="message-templates">
-                                 <a href="chat.html" class="chat-button">Go to Live Chat</a>
+                                <div class="chat-integration-section">
+    <a href="{{ url_for('chat') }}" class="chat-button" target="_blank">
+        <i class="fas fa-comments"></i>
+        <span>Live Network Chat</span>
+        <small>Real-time messaging with IP display</small>
+    </a>
+    
+    <div class="chat-description">
+        <p><i class="fas fa-info-circle"></i> <strong>New Feature:</strong> Test IP spoofing in a live chat environment with simulated network traffic.</p>
+    </div>
+</div>
 
                                 <button class="template-btn" data-template="normal">
                                     <i class="fas fa-comment"></i> Normal
@@ -840,6 +932,7 @@ Example normal: 'Hello, this is a regular message from the network admin'"
                                         <h4>Review Results</h4>
                                         <p>Check statistics to see detection accuracy</p>
                                         <p>Learn from educational hints and defense tips</p>
+                                         <p>If continue ask Fabrice NDAYISABA ,WHO STUDIED NETWORK SECURITY IN UR_CST AND CERTIFIED IN ISC2</p>
                                     </div>
                                 </div>
                             </div>
@@ -903,7 +996,7 @@ Example normal: 'Hello, this is a regular message from the network admin'"
                 <div class="footer-left">
                     <div class="educational-notice">
                         <i class="fas fa-graduation-cap"></i>
-                        <span>ACADEMIC DEMONSTRATION ONLY - For Educational Purposes</span>
+                        <span> email: fabricendayisaba16@gmail.com - For Educational Purposes</span>
                     </div>
                 </div>
                 
@@ -1025,5 +1118,8 @@ Example normal: 'Hello, this is a regular message from the network admin'"
             }, 2000);
         });
     </script>
+
+
+
 </body>
 </html>
